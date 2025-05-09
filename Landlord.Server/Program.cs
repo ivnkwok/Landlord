@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Landlord.Server.Data;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace Landlord.Server
 {
@@ -6,6 +10,13 @@ namespace Landlord.Server
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
+
+            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+
+            builder.Services.AddAuthentication();
+            builder.Services.AddIdentityApiEndpoints<ApplicationUser>().AddEntityFrameworkStores<ApplicationDbContext>();
 
             // Add services to the container.
 
@@ -18,6 +29,19 @@ namespace Landlord.Server
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+            app.MapIdentityApi<ApplicationUser>();
+
+            app.MapPost("/logout", async (SignInManager<ApplicationUser> signInManager) =>
+            {
+                await signInManager.SignOutAsync();
+                return Results.Ok();
+            }).RequireAuthorization();
+
+            app.MapGet("/pingauth", (ClaimsPrincipal user) =>
+            {
+                var email = user.FindFirstValue(ClaimTypes.Email);
+                return Results.Json(new { Email = email });
+            }).RequireAuthorization();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
