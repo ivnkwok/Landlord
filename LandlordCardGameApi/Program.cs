@@ -1,4 +1,7 @@
 
+using LandlordCardGameApi.Services;
+using LandlordCardGameApi.Settings;
+
 namespace LandlordCardGameApi
 {
     public class Program
@@ -7,7 +10,23 @@ namespace LandlordCardGameApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            });
+
             // Add services to the container.
+            builder.Services.Configure<AcsSettings>(
+                builder.Configuration.GetSection("AcsSettings"));
+
+            builder.Services.AddScoped<IAcsService, AcsService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -22,6 +41,8 @@ namespace LandlordCardGameApi
 
             app.UseAuthorization();
 
+            // Use CORS
+            app.UseCors("AllowAll");
 
             app.MapControllers();
 
