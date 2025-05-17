@@ -4,13 +4,13 @@ namespace LandlordCardGameApi.Services
 {
     public interface IAcsService
     {
-        Task<AcsUser> CreateUser();
+        Task<AcsUser> CreateUser(string userName, UserRoles role);
 
-        Task<string> CreateChat(AcsUser acsUser, string displayName);
+        Task<string> CreateChat(AcsUser acsUser);
 
-        Task<bool> AddUserToChat(AcsUser acsUser, string displayName, string threadId, string threadOwnerToken);
+        Task<bool> AddUserToChat(AcsUser acsUser, string threadId, string threadOwnerToken);
 
-        Task RevokeAcsToken(string id);
+        Task RevokeAcsToken(string userId);
 
         Task DeleteChatThread(string threadId, string threadOwnerToken);
     }
