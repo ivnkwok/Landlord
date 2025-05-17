@@ -26,7 +26,11 @@ namespace LandlordCardGameApi
             builder.Services.Configure<AcsSettings>(
                 builder.Configuration.GetSection("AcsSettings"));
 
-            builder.Services.AddScoped<IAcsService, AcsService>();
+            builder.Services.Configure<SessionStorageSettings>(
+                builder.Configuration.GetSection("SessionStorageSettings"));
+
+            builder.Services.AddSingleton<IAcsService, AcsService>();
+            builder.Services.AddSingleton<ISessionStorageService, SessionStorageService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
