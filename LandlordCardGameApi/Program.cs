@@ -1,4 +1,5 @@
 
+using Azure.Identity;
 using LandlordCardGameApi.Services;
 using LandlordCardGameApi.Settings;
 
@@ -21,6 +22,9 @@ namespace LandlordCardGameApi
                         .AllowAnyHeader();
                 });
             });
+
+            var keyVaultUri = builder.Configuration["AzureKeyVault:VaultUri"];
+            builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
 
             // Add services to the container.
             builder.Services.Configure<AcsSettings>(
