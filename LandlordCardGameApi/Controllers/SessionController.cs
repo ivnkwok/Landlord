@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using LandlordCardGameApi.Models;
 using LandlordCardGameApi.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 
@@ -51,6 +52,24 @@ namespace LandlordCardGameApi.Controllers
             };
 
             _logger.LogInformation("Create Session Successfully");
+            return Ok(result);
+        }
+
+        [Route("session/createanddeletesession")]
+        [HttpPost]
+        public async Task<ActionResult> CreateAndDeleteSession(string userName)
+        {
+            var result = await this.CreateSession(userName);
+            var okResult = result as OkObjectResult;
+            if (okResult != null)
+            {
+                var value = okResult.Value;
+                string pkey = (string)value.GetType().GetProperty("PartitionKey").GetValue(value);
+                string roomId = (string)value.GetType().GetProperty("RoomId").GetValue(value);
+                Thread.Sleep(1000);
+                this.EndSession(pkey, roomId);
+            }
+
             return Ok(result);
         }
 
