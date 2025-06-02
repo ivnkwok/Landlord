@@ -1,12 +1,13 @@
 import React, {useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import logo from '../logo.svg';
 import '../App.css';
 
 const apiUrl = 'https://landlordcardgameapi-d4fkbke4ewdjbqcw.canadacentral-01.azurewebsites.net/session/createsession'
 
 function Home() {
-  const [sessionID, setSessionID] = useState('');
   const [username, setUsername] = useState('Guest')
+  const navigate = useNavigate();
 
   const getSessionID = () => {
     fetch(`${apiUrl}?userName=${username}`, {
@@ -23,22 +24,22 @@ function Home() {
           throw new Error('Network error');
         }
       }
-      return response.text()
+      return response.json()
     })
     .then(data => {
-      setSessionID(data)
+      const roomId = data.roomId
+      navigate(`/${roomId}`)
     })
     .catch(error => {
       console.error('Error: ', error)
-      setSessionID('Error: ', error)
     })
-  } 
+  }
 
   return (
     <div className="Home">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>{sessionID || 'no session yet'}</p>
+        <p>LANDLORD!!!</p>
         <input 
           value={username}
           onChange={e => setUsername(e.target.value)}
