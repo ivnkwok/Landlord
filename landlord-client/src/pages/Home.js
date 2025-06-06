@@ -7,9 +7,12 @@ const apiUrl = 'https://landlordcardgameapi-d4fkbke4ewdjbqcw.canadacentral-01.az
 
 function Home() {
   const [username, setUsername] = useState('Guest')
+  const [isLoading, setIsLoading] = useState(false);
+  const [roomId, setRoomId] = useState('');
   const navigate = useNavigate();
 
   const getSessionID = () => {
+    setIsLoading(true);
     fetch(`${apiUrl}?userName=${username}`, {
       method: 'POST',
     })
@@ -27,27 +30,58 @@ function Home() {
       return response.json()
     })
     .then(data => {
-      const roomId = data.roomId
-      navigate(`/${roomId}`)
+      const newRoomId = data.roomId
+      setRoomId(newRoomId)
+      joinRoom(newRoomId)
     })
     .catch(error => {
       console.error('Error: ', error)
     })
+    .finally(
+      setIsLoading(true)
+    )
   }
 
+  const joinRoom = (roomCode = roomId) => {
+    //TODO: GET and check if roomcode is valid
+    if (roomCode?.length >= 4) {
+      navigate(`/room/${roomCode}`);
+    }
+  }
+  
+
   return (
-    <div className="Home">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+    <div className="home">
+      <header className="app-header">
         <p>LANDLORD!!!</p>
-        <input 
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-        />
-        <button onClick={getSessionID}>
-          Create new session
-        </button>
       </header>
+      <div className="room-sections">
+        <div className="room-section">
+          <p>CREATE ROOM</p>
+          <input
+              placeholder="Username"
+              onChange={e => setUsername(e.target.value)}
+            />
+          <button 
+            disabled={isLoading}
+            onClick={getSessionID}>
+            {isLoading ? 'Creating session...' : 'Create new session'}
+          </button>
+        </div>
+        <div className="room-section">
+          <p>JOIN ROOM</p>
+          <input
+              placeholder="Room code"
+              maxLength={4}
+              onChange={e => setRoomId(e.target.value)}
+            />
+          <button 
+            onClick={joinRoom}
+          >
+            Enter room code
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
