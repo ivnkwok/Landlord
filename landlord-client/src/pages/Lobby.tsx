@@ -17,7 +17,7 @@ function Lobby() {
             </div>
             <div className='volume'>
                 <button className='toggleMute' onClick={e => toggleMute()}>{muted || volume == 0 ? '🔇' : '🔊'}</button>
-                <input type='range' min='0' max='100' step='5' onChange={e => setVolume(e.target.value)}></input>
+                <input type='range' min='0' max='100' step='5' onChange={e => setVolume(Number(e.target.value))}></input>
             </div>
         </div>
     )
