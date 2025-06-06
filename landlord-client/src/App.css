@@ -71,10 +71,14 @@ input, button {
   color: white;
 }
 
-.top-bar{
+.lobby {
+  display: flex;
+  flex-direction: column;
+}
+
+.top-bar {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
   gap: 1rem;
   outline: 1px solid red;
   width: 100%;
@@ -82,7 +86,25 @@ input, button {
   color: white;
 }
 
+.main-content {
+  display: flex;
+  flex-grow: 1;
+}
+
 .volume {
   margin-left: auto;
   flex-wrap: nowrap;
+}
+
+.game-board {
+  width: 75vw;
+  height: 90vh;
+  display: flex;
+  outline: 1px solid red;
+}
+
+.chat-area {
+  width: 25vw;
+  height: 90vh;
+  outline: 1px solid red;
 }

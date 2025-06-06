@@ -1,14 +1,13 @@
 import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../logo.svg';
 import '../App.css';
 
 const apiUrl = 'https://landlordcardgameapi-d4fkbke4ewdjbqcw.canadacentral-01.azurewebsites.net/session/createsession'
 
 function Home() {
   const [username, setUsername] = useState('Guest')
-  const [isLoading, setIsLoading] = useState(false);
-  const [roomId, setRoomId] = useState('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [roomId, setRoomId] = useState<string>('');
   const navigate = useNavigate();
 
   const getSessionID = () => {
@@ -37,9 +36,9 @@ function Home() {
     .catch(error => {
       console.error('Error: ', error)
     })
-    .finally(
-      setIsLoading(true)
-    )
+    .finally(() => {
+      setIsLoading(false);
+    })
   }
 
   const joinRoom = (roomCode = roomId) => {
@@ -76,7 +75,7 @@ function Home() {
               onChange={e => setRoomId(e.target.value)}
             />
           <button 
-            onClick={joinRoom}
+            onClick={() => joinRoom}
           >
             Enter room code
           </button>
