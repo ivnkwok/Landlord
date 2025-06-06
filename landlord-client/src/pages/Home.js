@@ -30,8 +30,9 @@ function Home() {
       return response.json()
     })
     .then(data => {
-      const roomId = data.roomId
-      navigate(`/${roomId}`)
+      const newRoomId = data.roomId
+      setRoomId(newRoomId)
+      joinRoom(newRoomId)
     })
     .catch(error => {
       console.error('Error: ', error)
@@ -41,9 +42,10 @@ function Home() {
     )
   }
 
-  const joinRoom = () => {
-    if (roomId?.length >= 4) {
-      navigate(`/${roomId}`);
+  const joinRoom = (roomCode = roomId) => {
+    //TODO: GET and check if roomcode is valid
+    if (roomCode?.length >= 4) {
+      navigate(`/room/${roomCode}`);
     }
   }
   
