@@ -68,3 +68,27 @@ input, button {
   max-height: 4dvh;
   color: white;
 }
+
+.room-section {
+  font-size: 3rem;
+  outline: 1px solid red;
+  background-color: #282c34;
+  display: flex;
+  flex: 1;
+  margin: 0 1rem;
+  flex-direction: column;
+  padding: 2rem;
+  align-items: center;
+  color: white;
+}
+
+.top-bar{
+  display: flex;
+  padding:0;
+  margin-top: 0;
+  flex: 1;
+  outline: 1px solid red;
+  width: 100%;
+  max-height: 4dvh;
+  color: white;
+}
