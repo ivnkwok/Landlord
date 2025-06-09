@@ -48,6 +48,7 @@ namespace LandlordCardGameApi.Controllers
                 RoomId = sessionInfo.RoomId,
                 AcsUser = acsUser,
                 AcsConnectionId = sessionInfo.AcsConnectionId,
+                AcsEndpoint= this.acsService.Endpoint.Trim('/'),
                 RoomStatus = sessionInfo.RoomStatus.ToString(),
             };
 

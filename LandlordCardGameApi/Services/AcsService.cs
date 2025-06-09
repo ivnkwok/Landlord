@@ -5,6 +5,7 @@ using LandlordCardGameApi.Models;
 using LandlordCardGameApi.Settings;
 using Microsoft.Extensions.Options;
 using System.Net;
+using System.Runtime;
 
 namespace LandlordCardGameApi.Services
 {
@@ -15,6 +16,11 @@ namespace LandlordCardGameApi.Services
         public AcsService(IOptions<AcsSettings> options)
         {
             _settings = options.Value;
+        }
+
+        public string Endpoint
+        {
+            get { return GetValueFromConnectionString(_settings.ConnectionString, "endpoint"); }
         }
 
         public async Task<AcsUser> CreateUser(string userName, UserRoles role)
@@ -34,7 +40,7 @@ namespace LandlordCardGameApi.Services
         public async Task<string> CreateChat(AcsUser acsUser)
         {
             CommunicationTokenCredential tokenCredential = new CommunicationTokenCredential(acsUser.Token);
-            Uri endpoint = new Uri(_settings.ServiceEndpoint);
+            Uri endpoint = new Uri(this.Endpoint);
             ChatClient chatClient = new ChatClient(endpoint, tokenCredential);
 
             var participant = new ChatParticipant(identifier: new CommunicationUserIdentifier(id: acsUser.UserId))
@@ -55,7 +61,8 @@ namespace LandlordCardGameApi.Services
         public async Task<bool> AddUserToChat(AcsUser acsUser, string threadId, string threadOwnerToken)
         {
             CommunicationTokenCredential tokenCredential = new CommunicationTokenCredential(threadOwnerToken);
-            Uri endpoint = new Uri(_settings.ServiceEndpoint);
+            Uri endpoint = new Uri(this.Endpoint);
+
             ChatClient chatClient = new ChatClient(endpoint, tokenCredential);
 
             var participant = new ChatParticipant(identifier: new CommunicationUserIdentifier(id: acsUser.UserId))
@@ -89,13 +96,30 @@ namespace LandlordCardGameApi.Services
         public async Task DeleteChatThread(string threadId, string threadOwnerToken)
         {
             CommunicationTokenCredential tokenCredential = new CommunicationTokenCredential(threadOwnerToken);
-            Uri endpoint = new Uri(_settings.ServiceEndpoint);
+            Uri endpoint = new Uri(this.Endpoint);
+
             ChatClient chatClient = new ChatClient(endpoint, tokenCredential);
             var response = await chatClient.DeleteChatThreadAsync(threadId);
             if (response.Status != (int)HttpStatusCode.NoContent)
             {
                 throw new Exception(response.ReasonPhrase);
             }
+        }
+
+        private string GetValueFromConnectionString(string connectionString, string key)
+        {
+            var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var part in parts)
+            {
+                var kv = part.Split('=', 2);
+                if (kv.Length == 2 && kv[0].Trim().Equals(key, StringComparison.OrdinalIgnoreCase))
+                {
+                    return kv[1].Trim();
+                }
+            }
+
+            return null;
         }
     }
 }

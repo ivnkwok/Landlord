@@ -4,6 +4,8 @@ namespace LandlordCardGameApi.Services
 {
     public interface IAcsService
     {
+        string Endpoint { get; }
+
         Task<AcsUser> CreateUser(string userName, UserRoles role);
 
         Task<string> CreateChat(AcsUser acsUser);
