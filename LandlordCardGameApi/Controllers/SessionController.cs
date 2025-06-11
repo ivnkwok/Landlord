@@ -2,6 +2,7 @@
 using LandlordCardGameApi.Models;
 using LandlordCardGameApi.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 
@@ -112,6 +113,60 @@ namespace LandlordCardGameApi.Controllers
             await this.sessionStorageService.Update(sessionInfo);
 
             return this.Ok();
+        }
+
+        [Route("session/joinsession")]
+        [HttpPost]
+        public async Task<ActionResult> JoinSession(string roomId, string userName)
+        {
+            if (string.IsNullOrWhiteSpace(roomId))
+            {
+                _logger.LogInformation("RoomId is null or empty.");
+                return BadRequest();
+            }
+
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                _logger.LogInformation("User name is null or empty.");
+                return BadRequest();
+            }
+
+            try
+            {
+                var sessionInfo = await this.sessionStorageService.Retrieve(roomId);
+                string threadOwnerToken = "";
+
+                //Get owner token
+                foreach (AcsUser user in sessionInfo.AcsUsers)
+                {
+                    if (user.Role == UserRoles.Owner)
+                    {
+                        threadOwnerToken = user.Token;
+                    }
+                }
+
+                //Ensure owner token exists
+                if (string.IsNullOrWhiteSpace(threadOwnerToken))
+                {
+                    _logger.LogInformation("Could not find owner token.");
+                    return BadRequest();
+                }
+
+                var acsUser = await this.acsService.CreateUser(userName, UserRoles.Guest);
+                _logger.LogInformation("Created guest user");
+                sessionInfo.AcsUsers.Add(acsUser);
+                _logger.LogInformation("Added guest user to AcsUsers");
+                await this.acsService.AddUserToChat(acsUser, sessionInfo.AcsConnectionId, threadOwnerToken);
+                _logger.LogInformation("Added guest user to chat");
+                await this.sessionStorageService.Update(sessionInfo);
+
+                return this.Ok();
+            }
+            catch (Exception)
+            {
+                return this.NotFound();
+            }
+            
         }
     }
 }
