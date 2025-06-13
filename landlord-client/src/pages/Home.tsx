@@ -9,7 +9,7 @@ function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [roomId, setRoomId] = useState<string>('');
   const navigate = useNavigate();
-
+  
   const getSessionID = () => {
     setIsLoading(true);
     fetch(`${apiUrl}?userName=${username}`, {
@@ -29,9 +29,9 @@ function Home() {
       return response.json()
     })
     .then(data => {
-      const newRoomId = data.roomId
-      setRoomId(newRoomId)
-      joinRoom(newRoomId)
+      const newRoomId = data.roomId;
+      setRoomId(newRoomId);
+      joinRoom(data);
     })
     .catch(error => {
       console.error('Error: ', error)
@@ -41,10 +41,11 @@ function Home() {
     })
   }
 
-  const joinRoom = (roomCode = roomId) => {
+  const joinRoom = async (roomInfo: any) => {
     //TODO: GET and check if roomcode is valid
+    const roomCode = roomInfo.roomId;
     if (roomCode?.length >= 4) {
-      navigate(`/room/${roomCode}`);
+      navigate(`/room/${roomCode}`, {state: roomInfo});
     }
   }
   

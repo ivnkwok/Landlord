@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
-import { useParams } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import { CommandChatClient } from "../services/CommandChatClient";
 import '../App.css';
 
 function Lobby() {
@@ -9,6 +10,39 @@ function Lobby() {
     const [volume, setVolume] = useState<number>(50)
     const toggleMute = () => setMuted(value => !value);
 
+    const location = useLocation();
+    const roomInfo = location.state;
+    let commandChatClient: CommandChatClient | null;
+
+    useEffect(() => {
+        const joinRoom = async (roomInfo : any) => {
+            const userId = roomInfo.acsUser.userId;
+            const token = roomInfo.acsUser.token;
+            const endpointUrl = roomInfo.acsEndpoint;
+            const threadId = roomInfo.acsConnectionId;
+            commandChatClient = new CommandChatClient(endpointUrl, token, threadId, userId);
+            await commandChatClient.initialize(messageReceived);
+
+            window.setTimeout(async () => { 
+                if (commandChatClient) {
+                await commandChatClient.sendCommand("REBOOT_DEVICE_42");
+                }
+            }, 5000);
+        };
+
+        if (roomInfo && !commandChatClient) {
+            joinRoom(roomInfo);
+        }
+    }, []);
+
+    const messageReceived = (command : string, event : any) => {
+        console.log("Received command:", command);
+        // Perform logic
+        if (command === "REBOOT_DEVICE_42") {
+            console.log("🚀 Rebooting device...");
+        }
+    };
+ 
     return (
         <div className='lobby'>
             <div className='top-bar'>
