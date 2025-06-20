@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
+import { error } from 'console';
 
-const apiUrl = 'https://landlordcardgameapi-d4fkbke4ewdjbqcw.canadacentral-01.azurewebsites.net/session/createsession'
+const apiUrl = 'https://landlordcardgameapi-d4fkbke4ewdjbqcw.canadacentral-01.azurewebsites.net/session/'
 
 function Home() {
   const [username, setUsername] = useState('Guest')
@@ -10,9 +11,9 @@ function Home() {
   const [roomId, setRoomId] = useState<string>('');
   const navigate = useNavigate();
   
-  const getSessionID = () => {
+  const createSession = () => {
     setIsLoading(true);
-    fetch(`${apiUrl}?userName=${username}`, {
+    fetch(`${apiUrl}createsession?userName=${username}`, {
       method: 'POST',
     })
     .then(response => {
@@ -31,7 +32,7 @@ function Home() {
     .then(data => {
       const newRoomId = data.roomId;
       setRoomId(newRoomId);
-      joinRoom(data);
+      navigateToRoom(data);
     })
     .catch(error => {
       console.error('Error: ', error)
@@ -41,14 +42,35 @@ function Home() {
     })
   }
 
-  const joinRoom = async (roomInfo: any) => {
-    //TODO: GET and check if roomcode is valid
-    const roomCode = roomInfo.roomId;
+  const joinRoom = async () => {
+    setIsLoading(true);
+    fetch(`${apiUrl}joinsession?roomId=${roomId}&userName=${username}`, {
+      method: 'POST',
+    })
+    .then(response => {
+      if (!response.ok) {
+        if (response.status == 404) {
+          throw new Error('URL not found');
+        } else if (response.status === 500) {
+          throw new Error('Server error');
+        }
+        else {
+          throw new Error('Network error');
+        }
+      }
+      return response.json()
+    })
+    .then(data => {
+      navigateToRoom(data);
+    })
+  }
+  
+  const navigateToRoom = (roomInfo: any) => {
+    let roomCode = roomInfo.roomId;
     if (roomCode?.length >= 4) {
       navigate(`/room/${roomCode}`, {state: roomInfo});
     }
   }
-  
 
   return (
     <div className="home">
@@ -64,7 +86,7 @@ function Home() {
             />
           <button 
             disabled={isLoading}
-            onClick={getSessionID}>
+            onClick={createSession}>
             {isLoading ? 'Creating session...' : 'Create new session'}
           </button>
         </div>
@@ -76,7 +98,8 @@ function Home() {
               onChange={e => setRoomId(e.target.value)}
             />
           <button 
-            onClick={() => joinRoom}
+            disabled={isLoading}
+            onClick={joinRoom}
           >
             Enter room code
           </button>
