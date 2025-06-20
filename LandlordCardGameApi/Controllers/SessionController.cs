@@ -2,7 +2,6 @@
 using LandlordCardGameApi.Models;
 using LandlordCardGameApi.Services;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 
@@ -143,13 +142,6 @@ namespace LandlordCardGameApi.Controllers
                     {
                         threadOwnerToken = user.Token;
                     }
-                }
-
-                //Ensure owner token exists
-                if (string.IsNullOrWhiteSpace(threadOwnerToken))
-                {
-                    _logger.LogInformation("Could not find owner token.");
-                    return BadRequest();
                 }
 
                 var acsUser = await this.acsService.CreateUser(userName, UserRoles.Guest);
