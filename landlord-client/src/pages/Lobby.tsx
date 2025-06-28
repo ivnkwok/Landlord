@@ -2,17 +2,19 @@ import React, {useEffect, useState} from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { CommandChatClient } from "../services/CommandChatClient";
 import '../App.css';
+import { ChatParticipant } from '@azure/communication-chat';
 
 function Lobby() {
 
     const {roomCode} = useParams<{roomCode: string}>();
+    const [userList, setUserList] = useState<ChatParticipant[]>([])
     const [muted, setMuted] = useState<boolean>(false)
     const [volume, setVolume] = useState<number>(50)
     const toggleMute = () => setMuted(value => !value);
 
     const location = useLocation();
     const roomInfo = location.state;
-    let commandChatClient: CommandChatClient | null;
+    let commandChatClient: CommandChatClient;
 
     useEffect(() => {
         const joinRoom = async (roomInfo : any) => {
@@ -21,28 +23,64 @@ function Lobby() {
             const endpointUrl = roomInfo.acsEndpoint;
             const threadId = roomInfo.acsConnectionId;
             commandChatClient = new CommandChatClient(endpointUrl, token, threadId, userId);
-            await commandChatClient.initialize(messageReceived);
+            await commandChatClient.initialize((receivedMessage, event) => {
+                messageReceived(receivedMessage, event)
+            });
+            await sendJoinMessage();
 
-            window.setTimeout(async () => { 
-                if (commandChatClient) {
-                await commandChatClient.sendCommand("REBOOT_DEVICE_42");
-                }
-            }, 5000);
+            // window.setTimeout(async () => { 
+            //     if (commandChatClient) {
+            //     await commandChatClient.sendCommand("REBOOT_DEVICE_42");
+            //     }
+            // }, 5000);
         };
-
+        
         if (roomInfo && !commandChatClient) {
             joinRoom(roomInfo);
         }
     }, []);
 
-    const messageReceived = (command : string, event : any) => {
+    const sendJoinMessage = async () => {
+        if (commandChatClient) {
+            await commandChatClient.sendCommand("ENTERED")
+
+        }
+    }
+
+    const messageReceived = async (command : string, event : any) => {
         console.log("Received command:", command);
         // Perform logic
-        if (command === "REBOOT_DEVICE_42") {
-            console.log("🚀 Rebooting device...");
+        if (command === "ENTERED") {
+            let participants = await commandChatClient.getUserList()
+            const newUserList = []
+        for await (const participant of participants) {
+            console.log(participant)
+            newUserList.push(participant)
+        }
+        setUserList(newUserList)
+            // const addParticipantRequest = {
+            //     participants: [
+            //         {
+            //             id: { communicationUserId: roomInfo.acsUser.userId},
+            //             displayName: roomInfo.acsUser.userName
+            //         }
+            //     ]
+            // }
+            // console.log(commandChatClient?.addUserToChat(addParticipantRequest))
         }
     };
- 
+    
+
+    const getUserList = async () => {
+        const participants = await commandChatClient.getUserList();
+        const newUserList = []
+        for await (const participant of participants) {
+            console.log(participant)
+            newUserList.push(participant)
+        }
+        setUserList(newUserList)
+    }
+
     return (
         <div className='lobby'>
             <div className='top-bar'>
@@ -57,6 +95,10 @@ function Lobby() {
             </div>
             <div className='main-content'>
               <div className='canvas-area'>
+              <div className='userlist'>{userList?.map((user, i) => (
+                <p key={i}>{user.displayName}</p>
+              ))}</div>
+              <button onClick={getUserList}></button>
                   <canvas className='game-board'></canvas>
               </div>
               <div className='chat-area'></div>

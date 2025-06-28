@@ -45,4 +45,9 @@ export class CommandChatClient {
       content: command
     });
   }
+
+  async getUserList() {
+    const participants = this.chatThreadClient.listParticipants()
+    return participants
+  }
 }
