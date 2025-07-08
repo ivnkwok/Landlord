@@ -152,7 +152,17 @@ namespace LandlordCardGameApi.Controllers
                 _logger.LogInformation("Added guest user to chat");
                 await this.sessionStorageService.Update(sessionInfo);
 
-                return this.Ok();
+                var result = new
+                {
+                    PartitionKey = sessionInfo.PartitionKey,
+                    RoomId = sessionInfo.RoomId,
+                    AcsUser = acsUser,
+                    AcsConnectionId = sessionInfo.AcsConnectionId,
+                    AcsEndpoint = this.acsService.Endpoint.Trim('/'),
+                    RoomStatus = sessionInfo.RoomStatus.ToString(),
+                };
+
+                return this.Ok(result);
             }
             catch (Exception)
             {
