@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import { error } from 'console';
 
-const apiUrl = 'https://landlordcardgameapi-d4fkbke4ewdjbqcw.canadacentral-01.azurewebsites.net/session/'
+const apiUrl = process.env.REACT_APP_API_URL
 
 function Home() {
   const [username, setUsername] = useState('Guest')
