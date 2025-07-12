@@ -48,7 +48,7 @@ namespace LandlordCardGameApi.Controllers
                 RoomId = sessionInfo.RoomId,
                 AcsUser = acsUser,
                 AcsConnectionId = sessionInfo.AcsConnectionId,
-                AcsEndpoint= this.acsService.Endpoint.Trim('/'),
+                AcsEndpoint = this.acsService.Endpoint.Trim('/'),
                 RoomStatus = sessionInfo.RoomStatus.ToString(),
             };
 
@@ -168,7 +168,31 @@ namespace LandlordCardGameApi.Controllers
             {
                 return this.NotFound();
             }
-            
+
+        }
+
+        [Route("session/changesessionstatus")]
+        [HttpPost]
+        public async Task<ActionResult> ChangeSessionStatus(string roomId, RoomStatus status)
+        {
+            if (string.IsNullOrWhiteSpace(roomId))
+            {
+                _logger.LogInformation("RoomId is null or empty.");
+                return BadRequest();
+            }
+
+            try
+            {
+                var sessionInfo = await this.sessionStorageService.Retrieve(roomId);
+                sessionInfo.RoomStatus = status;
+                await this.sessionStorageService.Update(sessionInfo);
+
+                return this.Ok(status);
+            }
+            catch (Exception)
+            {
+                return this.NotFound();
+            }
         }
     }
 }

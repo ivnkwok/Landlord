@@ -6,15 +6,17 @@ import { ChatParticipant } from '@azure/communication-chat';
 
 function Lobby() {
 
+    const apiUrl = process.env.REACT_APP_API_URL
     const {roomCode} = useParams<{roomCode: string}>();
     const [userList, setUserList] = useState<ChatParticipant[]>([])
     const [muted, setMuted] = useState<boolean>(false)
     const [volume, setVolume] = useState<number>(50)
+    const [commandChatClient, setCommandChatclient] = useState<CommandChatClient | null>(null);
     const toggleMute = () => setMuted(value => !value);
 
     const location = useLocation();
     const roomInfo = location.state;
-    let commandChatClient: CommandChatClient;
+    // let commandChatClient: CommandChatClient;
 
     useEffect(() => {
         const joinRoom = async (roomInfo : any) => {
@@ -22,10 +24,11 @@ function Lobby() {
             const token = roomInfo.acsUser.token;
             const endpointUrl = roomInfo.acsEndpoint;
             const threadId = roomInfo.acsConnectionId;
-            commandChatClient = new CommandChatClient(endpointUrl, token, threadId, userId);
-            await commandChatClient.initialize((receivedMessage, event) => {
+            const client = new CommandChatClient(endpointUrl, token, threadId, userId)
+            await client.initialize((receivedMessage, event) => {
                 messageReceived(receivedMessage, event)
             });
+            setCommandChatclient(client);
             await sendJoinMessage();
 
             // window.setTimeout(async () => { 
@@ -38,6 +41,8 @@ function Lobby() {
         if (roomInfo && !commandChatClient) {
             joinRoom(roomInfo);
         }
+
+        // getUserList();
     }, []);
 
     const sendJoinMessage = async () => {
@@ -50,7 +55,7 @@ function Lobby() {
     const messageReceived = async (command : string, event : any) => {
         console.log("Received command:", command);
         // Perform logic
-        if (command === "ENTERED") {
+        if (command === "ENTERED" && commandChatClient) {
             let participants = await commandChatClient.getUserList()
             const newUserList = []
         for await (const participant of participants) {
@@ -71,15 +76,40 @@ function Lobby() {
     };
     
 
-    const getUserList = async () => {
-        const participants = await commandChatClient.getUserList();
-        const newUserList = []
-        for await (const participant of participants) {
-            console.log(participant)
-            newUserList.push(participant)
+    const startGame = async () => {
+        fetch(`${apiUrl}session/changesessionstatus?roomId=${roomCode}&status=1`, {
+        method: 'POST',
+        })
+        .then(response => {
+        if (!response.ok) {
+            if (response.status == 404) {
+            throw new Error('URL not found');
+            } else if (response.status === 500) {
+            throw new Error('Server error');
+            }
+            else {
+            throw new Error('Network error');
+            }
         }
-        setUserList(newUserList)
-    }
+        return response.json()
+        })
+        .catch(error => {
+        console.error('Error: ', error)
+        })
+    };
+
+    const getUserList = async () => {
+        if (commandChatClient) {
+            const participants = await commandChatClient.getUserList();
+            const newUserList = []
+            for await (const participant of participants) {
+                console.log(participant)
+                newUserList.push(participant)
+            }
+            setUserList(newUserList)
+        }
+        
+    };
 
     return (
         <div className='lobby'>
@@ -98,7 +128,8 @@ function Lobby() {
               <div className='userlist'>{userList?.map((user, i) => (
                 <p key={i}>{user.displayName}</p>
               ))}</div>
-              <button onClick={getUserList}></button>
+              <button onClick={getUserList} disabled={!commandChatClient}>get user list</button>
+              <button onClick={startGame}>start room</button>
                   <canvas className='game-board'></canvas>
               </div>
               <div className='chat-area'></div>
